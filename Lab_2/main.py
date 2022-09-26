@@ -83,6 +83,14 @@ def dls(st, graph, check, res: list, lim=0):
         check[x] = -1
 
 
+def iddfs (st, graph, check, res: list):
+    for i in range(len(visits)):
+        ch = check.copy()
+        result = dls(st, graph, ch, res, i)
+        if (result is not None) and (result is not False):
+            print('addfl count: ' + str(i))
+            return result
+
 read_f('test.txt')
 fifo = deque([start])
 
@@ -94,3 +102,6 @@ print(dfs(start, graph, ch, [end]))
 print('\n********************************************************\n')
 ch = visits.copy()
 print(dls(start, graph, ch, [end], 6))
+print('\n********************************************************\n')
+ch = visits.copy()
+print(iddfs(start, graph, ch, [end]))
