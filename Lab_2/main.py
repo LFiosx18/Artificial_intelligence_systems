@@ -50,7 +50,7 @@ def bfs(queue: deque, graph, check, res=[end]):
             res.insert(0, left)
             return res
     else:
-        return 'Error'
+        return False
 
 
 def dfs(st, graph, check, res: list):
