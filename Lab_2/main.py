@@ -32,7 +32,7 @@ def read_f(file_name):
             add_graph(data[0], data[1], data[2])
 
 
-def dfs(queue: deque, graph, check, res=[end]):
+def bfs(queue: deque, graph, check, res=[end]):
     if len(queue) != 0:
         left = queue.popleft()
         if left == start:
@@ -45,7 +45,7 @@ def dfs(queue: deque, graph, check, res=[end]):
                 if x == end:
                     res.insert(0, left)
                     return check
-        dfs(queue, graph, check)
+        bfs(queue, graph, check)
         if (res[0] in towns) and (check[left] == check[res[0]] - 1):
             res.insert(0, left)
             return res
@@ -53,19 +53,44 @@ def dfs(queue: deque, graph, check, res=[end]):
         return 'Error'
 
 
-def bfs(st, graph, check, res=[end]):
+def dfs(st, graph, check, res: list):
     if check[st] == 1:
         return False
     if st == end:
         return True
-    check[st]=1
+    check[st] = 1
     towns = graph[st]
     for x in towns:
-        if bfs(x, graph, check, res):
+        if dfs(x, graph, check, res):
             res.insert(0, st)
             return res
 
 
+def dls(st, graph, check, res: list, lim=0):
+    if check[st] == 1:
+        return False
+    if st == end:
+        return True
+    check[st] = 1
+    if lim == 0:
+        return False
+    lim -= 1
+    towns = graph[st]
+    for x in towns:
+        if dls(x, graph, check, res, lim):
+            res.insert(0, st)
+            return res
+        check[x] = -1
+
+
 read_f('test.txt')
 fifo = deque([start])
-print(bfs(start, graph, visits))
+
+ch = visits.copy()
+print(bfs(deque([start]), graph, ch))
+print('\n********************************************************\n')
+ch = visits.copy()
+print(dfs(start, graph, ch, [end]))
+print('\n********************************************************\n')
+ch = visits.copy()
+print(dls(start, graph, ch, [end], 6))
