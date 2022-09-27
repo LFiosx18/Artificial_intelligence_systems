@@ -1,22 +1,24 @@
+import queue
 from collections import deque
 
 graph = {}
 visits = {}
+target_dist = {}
 start = 'Симферополь'
-end = 'Мурманск'
+end = 'Калининград'
 
 
 def add_graph(town_a, town_b, dist):
     s = {}
     if town_a in graph:
         s = graph[town_a]
-    s[town_b] = dist
+    s[town_b] = int(dist)
     graph[town_a] = s
 
     s = {}
     if town_b in graph:
         s = graph[town_b]
-    s[town_a] = dist
+    s[town_a] = int(dist)
     graph[town_b] = s
 
     visits[town_a] = -1
@@ -32,7 +34,16 @@ def read_f(file_name):
             add_graph(data[0], data[1], data[2])
 
 
-def bfs(queue: deque, graph, check, res=[end]):
+def read_dist(file_name):
+    with open(file_name, encoding='utf-8') as f:
+        for line in f:
+            data = []
+            for x in line.split(','):
+                data.append(x.replace('\n', ''))
+            target_dist[data[0]] = int(data[1])
+
+
+def bfs(queue: deque, check, res=[end]):
     if len(queue) != 0:
         left = queue.popleft()
         if left == start:
@@ -45,7 +56,7 @@ def bfs(queue: deque, graph, check, res=[end]):
                 if x == end:
                     res.insert(0, left)
                     return check
-        bfs(queue, graph, check)
+        bfs(queue, check)
         if (res[0] in towns) and (check[left] == check[res[0]] - 1):
             res.insert(0, left)
             return res
@@ -53,7 +64,7 @@ def bfs(queue: deque, graph, check, res=[end]):
         return False
 
 
-def dfs(st, graph, check, res: list):
+def dfs(st, check, res: list):
     if check[st] == 1:
         return False
     if st == end:
@@ -61,12 +72,12 @@ def dfs(st, graph, check, res: list):
     check[st] = 1
     towns = graph[st]
     for x in towns:
-        if dfs(x, graph, check, res):
+        if dfs(x, check, res):
             res.insert(0, st)
             return res
 
 
-def dls(st, graph, check, res: list, lim=0):
+def dls(st, check, res: list, lim=0):
     if check[st] == 1:
         return False
     if st == end:
@@ -77,22 +88,22 @@ def dls(st, graph, check, res: list, lim=0):
     lim -= 1
     towns = graph[st]
     for x in towns:
-        if dls(x, graph, check, res, lim):
+        if dls(x, check, res, lim):
             res.insert(0, st)
             return res
         check[x] = -1
 
 
-def iddfs (st, graph, check, res: list):
+def iddfs (st, check, res: list):
     for i in range(len(visits)):
         ch = check.copy()
-        result = dls(st, graph, ch, res, i)
+        result = dls(st, ch, res, i)
         if (result is not None) and (result is not False):
             print('addfl count: ' + str(i))
             return result
 
 
-def bds (queueS: deque, queueE: deque, graph, check, res = []):
+def bds (queueS: deque, queueE: deque, check, res = []):
     left = queueS.popleft()
     right = queueE.popleft()
     if left == start:
@@ -123,7 +134,7 @@ def bds (queueS: deque, queueE: deque, graph, check, res = []):
         if check[x] == -1:
             check[x] = check[right] + 1
             queueE.append(x)
-    bds(queueS, queueE, graph, check, res)
+    bds(queueS, queueE, check, res)
     if (res[0] in townsL) and (check[left] == check[res[0]] - 1):
         res.insert(0, left)
     if (res[len(res)-1] in townsR) and (check[right] == check[res[len(res)-1]] - 1):
@@ -131,19 +142,69 @@ def bds (queueS: deque, queueE: deque, graph, check, res = []):
     return res
 
 
-read_f('test.txt')
+def gs (queue: deque, check, res=[start]):
+    point = queue.popleft()
+    if point == end:
+        return True
+    if point == start:
+        check[point] = 1
+    towns = graph[point]
+    min = 10000
+    next = ''
+    r = False
+    for k, v in towns.items():
+        if check[k] == -1:
+            if v+target_dist[k] < min:
+                min = v+target_dist[k]
+                next = k
+                r = True
+            check[k] = 1
+    if not r:
+        res.pop(len(res)-1)
+        for x in towns:
+            check[x] = -1
+        gs(queue, check, res)
+        return res
 
-ch = visits.copy()
-print(bfs(deque([start]), graph, ch))
-print('\n********************************************************\n')
-ch = visits.copy()
-print(dfs(start, graph, ch, [end]))
-print('\n********************************************************\n')
-ch = visits.copy()
-print(dls(start, graph, ch, [end], 6))
-print('\n********************************************************\n')
-ch = visits.copy()
-print(iddfs(start, graph, ch, [end]))
-print('\n********************************************************\n')
-ch = visits.copy()
-print(bds(deque([start]), deque([end]), graph, ch))
+    queue.append(next)
+    res.append(next)
+    gs(queue, check, res)
+    return res
+
+
+read_f('test.txt')
+read_dist('target_dist.txt')
+
+# test = queue.PriorityQueue()
+#
+# def a_star():
+#     test.put((target_dist[start], start))
+#     from_town = {}
+#     while test.queue != 0:
+#         node = test.get()
+#         towns = graph[node[1]]
+#         for k, v in towns.items():
+#             from_town[k] = node[1]
+#             test.put((node[0] - target_dist[node[1]] + v + target_dist[k], k))
+#
+#
+#
+# a_star()
+
+# ch = visits.copy()
+# print(gs(deque([start]), ch))
+
+# ch = visits.copy()
+# print(bfs(deque([start]), ch))
+# print('\n********************************************************\n')
+# ch = visits.copy()
+# print(dfs(start, ch, [end]))
+# print('\n********************************************************\n')
+# ch = visits.copy()
+# print(dls(start, ch, [end], 6))
+# print('\n********************************************************\n')
+# ch = visits.copy()
+# print(iddfs(start, ch, [end]))
+# print('\n********************************************************\n')
+# ch = visits.copy()
+# print(bds(deque([start]), deque([end]), ch))
