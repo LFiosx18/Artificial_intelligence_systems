@@ -4,8 +4,9 @@ from collections import deque
 graph = {}
 visits = {}
 target_dist = {}
+test = queue.PriorityQueue()
 start = 'Симферополь'
-end = 'Калининград'
+end = 'Мурманск'
 
 
 def add_graph(town_a, town_b, dist):
@@ -94,7 +95,7 @@ def dls(st, check, res: list, lim=0):
         check[x] = -1
 
 
-def iddfs (st, check, res: list):
+def iddfs(st, check, res: list):
     for i in range(len(visits)):
         ch = check.copy()
         result = dls(st, ch, res, i)
@@ -103,7 +104,7 @@ def iddfs (st, check, res: list):
             return result
 
 
-def bds (queueS: deque, queueE: deque, check, res = []):
+def bds(queueS: deque, queueE: deque, check, res=[]):
     left = queueS.popleft()
     right = queueE.popleft()
     if left == start:
@@ -137,12 +138,12 @@ def bds (queueS: deque, queueE: deque, check, res = []):
     bds(queueS, queueE, check, res)
     if (res[0] in townsL) and (check[left] == check[res[0]] - 1):
         res.insert(0, left)
-    if (res[len(res)-1] in townsR) and (check[right] == check[res[len(res)-1]] - 1):
+    if (res[len(res) - 1] in townsR) and (check[right] == check[res[len(res) - 1]] - 1):
         res.append(right)
     return res
 
 
-def gs (queue: deque, check, res=[start]):
+def gs(queue: deque, check, res=[start]):
     point = queue.popleft()
     if point == end:
         return True
@@ -154,13 +155,13 @@ def gs (queue: deque, check, res=[start]):
     r = False
     for k, v in towns.items():
         if check[k] == -1:
-            if v+target_dist[k] < min:
-                min = v+target_dist[k]
+            if v + target_dist[k] < min:
+                min = v + target_dist[k]
                 next = k
                 r = True
             check[k] = 1
     if not r:
-        res.pop(len(res)-1)
+        res.pop(len(res) - 1)
         for x in towns:
             check[x] = -1
         gs(queue, check, res)
@@ -172,39 +173,44 @@ def gs (queue: deque, check, res=[start]):
     return res
 
 
+def a_star():
+    test.put((target_dist[start], start))
+    from_town = {}
+    while test.queue != 0:
+        node = test.get()
+        if node[1] == end:
+            res = end
+            result = [res]
+            while True:
+                min = 5000
+                t = from_town[res]
+                for k, v in t.items():
+                    if v < min:
+                        min = v
+                        res = k
+                result.insert(0, res)
+                if res == start:
+                    break
+            print('The path has been found. The shortest distance is: ' + str(node[0]))
+            return result
+        towns = graph[node[1]]
+        for k, v in towns.items():
+            # if node[1] in from_town and k == from_town[node[1]]:
+            #     continue
+            test.put((node[0] - target_dist[node[1]] + v + target_dist[k], k))
+            if k in from_town:
+                t = from_town[k]
+                if node[1] in t:
+                    continue
+                t[node[1]] = (node[0] - target_dist[node[1]] + v + target_dist[k])
+                from_town[k] = t
+            else:
+                from_town[k] = {node[1]: node[0] - target_dist[node[1]] + v + target_dist[k]}
+    return False
+
+
 read_f('test.txt')
 read_dist('target_dist.txt')
 
-# test = queue.PriorityQueue()
-#
-# def a_star():
-#     test.put((target_dist[start], start))
-#     from_town = {}
-#     while test.queue != 0:
-#         node = test.get()
-#         towns = graph[node[1]]
-#         for k, v in towns.items():
-#             from_town[k] = node[1]
-#             test.put((node[0] - target_dist[node[1]] + v + target_dist[k], k))
-#
-#
-#
-# a_star()
-
-# ch = visits.copy()
-# print(gs(deque([start]), ch))
-
-# ch = visits.copy()
-# print(bfs(deque([start]), ch))
-# print('\n********************************************************\n')
-# ch = visits.copy()
-# print(dfs(start, ch, [end]))
-# print('\n********************************************************\n')
-# ch = visits.copy()
-# print(dls(start, ch, [end], 6))
-# print('\n********************************************************\n')
-# ch = visits.copy()
-# print(iddfs(start, ch, [end]))
-# print('\n********************************************************\n')
-# ch = visits.copy()
-# print(bds(deque([start]), deque([end]), ch))
+print('\nA*')
+print(a_star())
